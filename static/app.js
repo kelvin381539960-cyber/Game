@@ -174,16 +174,34 @@ function renderVisualScene(scene) {
   const showTooth = scene.id === 'objects' || scene.id === 'brush' || scene.id === 'result';
   const brushWiggle = scene.id === 'brush';
 
+  $('visualScene').className = `visual-scene scene-${scene.id}`;
   $('visualScene').innerHTML = `
     <div class="scene-floor"></div>
+    ${createBigMotionLayer(scene)}
     ${createBearMarkup(bearMood)}
-    ${showTooth ? `<button class="object-target" style="right: 12%; bottom: 84px; width: 120px; height: 120px;" type="button" id="toothTarget" aria-label="牙齿"><div class="tooth ${cleanClass}"></div></button>` : ''}
-    <button class="object-target" style="left: 9%; bottom: 94px; width: 168px; height: 82px;" type="button" id="brushTarget" aria-label="牙刷"><div class="toothbrush ${brushWiggle ? 'wiggle' : ''}"></div></button>
-    ${showCup ? `<button class="object-target" style="left: 16%; bottom: 52px; width: 80px; height: 90px;" type="button" id="cupTarget" aria-label="水"><div class="cup"></div></button>` : ''}
+    ${showTooth ? `<button class="object-target tooth-hit-area" style="right: 12%; bottom: 84px; width: 120px; height: 120px;" type="button" id="toothTarget" aria-label="牙齿"><div class="tooth ${cleanClass}"></div></button>` : ''}
+    <button class="object-target brush-hit-area" style="left: 9%; bottom: 94px; width: 168px; height: 82px;" type="button" id="brushTarget" aria-label="牙刷"><div class="toothbrush ${brushWiggle ? 'wiggle' : ''}"></div></button>
+    ${showCup ? `<button class="object-target cup-hit-area" style="left: 16%; bottom: 52px; width: 80px; height: 90px;" type="button" id="cupTarget" aria-label="水"><div class="cup"></div></button>` : ''}
   `;
 
   bindSceneObjectEvents(scene);
   renderBubblesAndSparkles();
+}
+
+function createBigMotionLayer(scene) {
+  if (scene.id === 'emotion') {
+    return `<div class="motion-layer"><span class="motion-emoji bear-emoji sad-bear">🐻</span><span class="motion-emoji no-bubble">不想刷牙</span><span class="motion-emoji brush-emoji idle-brush">🪥</span></div>`;
+  }
+
+  if (scene.id === 'objects') {
+    return `<div class="motion-layer"><span class="motion-emoji brush-emoji find-brush">🪥</span><span class="motion-emoji water-emoji find-water">💧</span><span class="motion-emoji tooth-emoji find-tooth">🦷</span></div>`;
+  }
+
+  if (scene.id === 'brush') {
+    return `<div class="motion-layer"><span class="motion-emoji tooth-emoji big-tooth">🦷</span><span class="motion-emoji brush-emoji demo-brush">🪥</span><span class="motion-emoji foam-emoji foam-one">🫧</span><span class="motion-emoji foam-emoji foam-two">🫧</span></div>`;
+  }
+
+  return `<div class="motion-layer"><span class="motion-emoji bear-emoji happy-bear">🐻</span><span class="motion-emoji tooth-emoji sparkle-tooth">🦷</span><span class="motion-emoji star-emoji star-one">✨</span><span class="motion-emoji star-emoji star-two">✨</span></div>`;
 }
 
 function createBearMarkup(moodClass) {
@@ -225,12 +243,12 @@ function renderBubblesAndSparkles() {
   const scene = $('visualScene');
 
   if (state.brushCount > 0) {
-    for (let index = 0; index < state.brushCount * 5; index += 1) {
+    for (let index = 0; index < state.brushCount * 7; index += 1) {
       const bubble = document.createElement('span');
       bubble.className = 'bubble';
       bubble.style.left = `${52 + Math.random() * 22}%`;
       bubble.style.bottom = `${110 + Math.random() * 45}px`;
-      bubble.style.width = `${14 + Math.random() * 16}px`;
+      bubble.style.width = `${16 + Math.random() * 20}px`;
       bubble.style.height = bubble.style.width;
       bubble.style.animationDelay = `${Math.random() * .35}s`;
       scene.appendChild(bubble);
@@ -238,12 +256,12 @@ function renderBubblesAndSparkles() {
   }
 
   if (state.brushCount >= 3 || state.resultSparkled) {
-    for (let index = 0; index < 7; index += 1) {
+    for (let index = 0; index < 12; index += 1) {
       const sparkle = document.createElement('span');
       sparkle.className = 'sparkle';
       sparkle.textContent = '✨';
-      sparkle.style.right = `${12 + Math.random() * 18}%`;
-      sparkle.style.bottom = `${145 + Math.random() * 75}px`;
+      sparkle.style.right = `${10 + Math.random() * 28}%`;
+      sparkle.style.bottom = `${130 + Math.random() * 110}px`;
       sparkle.style.animationDelay = `${Math.random() * .28}s`;
       scene.appendChild(sparkle);
     }
