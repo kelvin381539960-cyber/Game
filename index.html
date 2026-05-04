@@ -4,10 +4,478 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="儿童中文互动阅读与认字训练 Web App MVP" />
-    <title>儿童互动阅读</title>
+    <title>儿童互动阅读试玩</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: #1f2937;
+        background: linear-gradient(135deg, #fff7ed 0%, #ecfeff 48%, #f3e8ff 100%);
+        min-height: 100vh;
+      }
+      button { font: inherit; cursor: pointer; }
+      .shell { max-width: 1080px; margin: 0 auto; padding: 18px; }
+      .header, .card, .dark-card, .reader-card, .quiz-card, .result-card {
+        border-radius: 28px;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      }
+      .header {
+        background: rgba(255, 255, 255, 0.78);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        margin-bottom: 18px;
+      }
+      .brand { display: flex; gap: 12px; align-items: center; border: 0; background: transparent; text-align: left; }
+      .brand-icon { width: 48px; height: 48px; border-radius: 18px; display: grid; place-items: center; background: #fcd34d; font-size: 24px; }
+      h1, h2, h3, p { margin: 0; }
+      .muted { color: #64748b; }
+      .grid { display: grid; gap: 18px; }
+      .home-grid { grid-template-columns: 1.15fr 0.85fr; }
+      .stories-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .card { background: rgba(255, 255, 255, 0.84); padding: 24px; }
+      .story-card { width: 100%; border: 1px solid #e2e8f0; background: linear-gradient(135deg, white, #f8fafc); text-align: left; padding: 18px; border-radius: 24px; transition: transform 0.15s, box-shadow 0.15s; }
+      .story-card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1); }
+      .story-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+      .emoji { font-size: 52px; }
+      .pill { display: inline-block; padding: 7px 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.76); color: #475569; font-size: 12px; font-weight: 800; margin: 4px 5px 0 0; }
+      .status-pill { background: #dbeafe; color: #2563eb; }
+      .done-pill { background: #dcfce7; color: #16a34a; }
+      .dark-card { background: #0f172a; color: white; padding: 24px; }
+      .dark-card .muted { color: #cbd5e1; line-height: 1.8; }
+      .feature { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 16px; margin-top: 10px; font-weight: 700; }
+      .btn { border: 0; border-radius: 18px; padding: 12px 18px; font-weight: 900; display: inline-flex; gap: 8px; align-items: center; justify-content: center; }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn-slate { background: #f1f5f9; color: #334155; }
+      .btn-blue { background: #0ea5e9; color: white; }
+      .btn-yellow { background: #facc15; color: #713f12; }
+      .btn-green { background: #dcfce7; color: #15803d; }
+      .toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+      .progress { height: 12px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin-bottom: 18px; }
+      .progress-bar { height: 100%; background: #facc15; transition: width 0.2s; }
+      .reader-grid { grid-template-columns: 0.8fr 1.2fr; }
+      .reader-cover { border-radius: 28px; background: linear-gradient(135deg, #fef3c7, #dffafe); padding: 32px; display: grid; place-items: center; text-align: center; }
+      .reader-card { background: white; padding: 24px; }
+      .reader-text { min-height: 180px; font-size: 32px; line-height: 1.9; font-weight: 900; letter-spacing: 0.03em; }
+      .char { border-radius: 8px; padding: 0 2px; transition: all 0.12s; }
+      .char-read { color: #94a3b8; }
+      .char-active { display: inline-block; background: #fcd34d; color: #78350f; transform: scale(1.12); box-shadow: 0 8px 18px rgba(245, 158, 11, 0.28); }
+      .keyword { display: inline-block; margin: 8px 8px 0 0; border-radius: 16px; padding: 8px 12px; background: #e0f2fe; color: #0369a1; font-weight: 900; font-size: 14px; }
+      .quiz-card, .result-card { max-width: 760px; margin: 0 auto; background: rgba(255,255,255,0.9); padding: 26px; }
+      .option { width: 100%; border: 2px solid #e2e8f0; background: white; border-radius: 22px; padding: 18px; text-align: left; font-weight: 900; font-size: 18px; margin-top: 10px; }
+      .option.selected { border-color: #38bdf8; background: #f0f9ff; }
+      .option.correct { border-color: #34d399; background: #ecfdf5; }
+      .feedback { margin-top: 16px; background: #fffbeb; color: #92400e; padding: 16px; border-radius: 20px; line-height: 1.7; font-weight: 800; }
+      .center { text-align: center; }
+      .score { font-size: 60px; color: #f59e0b; font-weight: 1000; }
+      .hidden { display: none !important; }
+      @media (max-width: 800px) {
+        .home-grid, .reader-grid, .stories-grid { grid-template-columns: 1fr; }
+        .reader-text { font-size: 26px; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <main class="shell">
+      <header class="header">
+        <button class="brand" onclick="showHome()">
+          <div class="brand-icon">📚</div>
+          <div>
+            <h1>故事闯关乐园</h1>
+            <p class="muted">读故事 · 逐字高亮 · 答问题 · 拿星星</p>
+          </div>
+        </button>
+        <div id="topStatus" class="pill">⭐ 已完成 0/3</div>
+      </header>
+
+      <section id="homeView" class="grid home-grid">
+        <div class="card">
+          <h2 style="font-size:32px; margin-bottom:8px;">今天想读哪个故事？</h2>
+          <p class="muted" style="margin-bottom:18px;">选择一个故事，完成阅读和 3 道小题。</p>
+          <div id="storyList" class="grid stories-grid"></div>
+        </div>
+        <aside class="dark-card">
+          <div style="font-size:64px;">🏆</div>
+          <h2 style="margin-top:12px;">试玩说明</h2>
+          <p class="muted" style="margin-top:12px;">这是一个可直接部署到 GitHub Pages 的静态试玩版。支持选故事、翻页阅读、逐字高亮朗读、答题反馈和得分奖励。</p>
+          <div class="feature">✨ 朗读时当前文字会发亮</div>
+          <div class="feature">✨ 适合儿童识字和阅读启蒙</div>
+          <div class="feature" id="speechStatus">✨ 正在检测朗读能力</div>
+        </aside>
+      </section>
+
+      <section id="readerView" class="hidden card">
+        <div class="toolbar">
+          <button class="btn btn-slate" onclick="stopSpeaking(); showHome();">⌂ 返回</button>
+          <div id="readerMeta"></div>
+        </div>
+        <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+        <div class="grid reader-grid">
+          <div class="reader-cover">
+            <div>
+              <div id="readerEmoji" style="font-size:88px;"></div>
+              <h2 id="readerTitle" style="font-size:32px; margin-top:14px;"></h2>
+              <p id="readerPageCount" class="muted" style="margin-top:8px;"></p>
+            </div>
+          </div>
+          <div class="reader-card">
+            <p id="readerText" class="reader-text"></p>
+            <div id="keywords"></div>
+            <div class="toolbar" style="margin-top:24px; margin-bottom:0;">
+              <button id="speakPageBtn" class="btn btn-green" onclick="toggleSpeakCurrentPage()">🔊 高亮朗读</button>
+              <button id="prevBtn" class="btn btn-slate" onclick="prevPage()">‹ 上一页</button>
+              <button id="nextBtn" class="btn btn-blue" onclick="nextPage()">下一页 ›</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="quizView" class="hidden quiz-card">
+        <div class="toolbar">
+          <div>
+            <p id="questionMeta" style="font-weight:900; color:#d97706;"></p>
+            <h2 id="questionPrompt" style="font-size:26px; margin-top:8px;"></h2>
+            <button id="speakQuestionBtn" class="btn btn-green" style="margin-top:14px;" onclick="toggleSpeakQuestion()">🔊 朗读题目</button>
+          </div>
+          <div style="font-size:44px;">🧠</div>
+        </div>
+        <div id="options"></div>
+        <div id="feedback" class="feedback hidden"></div>
+        <div class="toolbar" style="margin-top:22px; margin-bottom:0;">
+          <button class="btn btn-slate" onclick="stopSpeaking(); showReader();">返回</button>
+          <button id="quizNextBtn" class="btn btn-blue" onclick="nextQuestion()">下一题</button>
+        </div>
+      </section>
+
+      <section id="resultView" class="hidden result-card center">
+        <div style="width:96px;height:96px;border-radius:999px;background:#fcd34d;display:grid;place-items:center;margin:0 auto;font-size:52px;">🏆</div>
+        <h2 style="font-size:40px; margin-top:18px;">闯关完成！</h2>
+        <p id="resultTitle" class="muted" style="font-size:18px; margin-top:10px;"></p>
+        <div style="background:linear-gradient(135deg,#fffbeb,#f0f9ff);border-radius:28px;padding:24px;margin:28px 0;">
+          <p id="score" class="score"></p>
+          <p id="stars" style="font-weight:900;color:#475569;"></p>
+        </div>
+        <button class="btn btn-slate" onclick="restartStory()">↻ 再玩一次</button>
+        <button class="btn btn-blue" onclick="showHome()">选择新故事</button>
+      </section>
+    </main>
+
+    <script>
+      const stories = [
+        {
+          id: 'red-umbrella', title: '小兔子的红雨伞', level: 'L1', ageRange: '6 岁左右', theme: '分享与帮助', summary: '下雨天，小兔子用一把红雨伞帮助了没有伞的朋友。', coverEmoji: '☂️', estimatedMinutes: 5,
+          keywords: ['雨', '伞', '红', '朋友'],
+          pages: [
+            { id: 'p1', text: '下雨了，小兔子撑着一把红雨伞，慢慢走在小路上。', keywords: ['雨', '伞'] },
+            { id: 'p2', text: '小松鼠站在树下，尾巴湿湿的。它没有带伞。', keywords: ['树', '伞'] },
+            { id: 'p3', text: '小兔子说：“我们一起走吧，红雨伞很大。”', keywords: ['红', '一起'] },
+            { id: 'p4', text: '两个朋友躲在伞下，雨点落在伞面上，像在唱歌。', keywords: ['朋友', '雨点'] }
+          ],
+          questions: [
+            { id: 'q1', prompt: '“红雨伞”的“伞”是哪一个？', options: ['伞', '云', '车'], answer: '伞', explanation: '伞可以在下雨时帮我们挡雨。' },
+            { id: 'q2', prompt: '小兔子帮助了谁？', options: ['小松鼠', '小猫', '小鸟'], answer: '小松鼠', explanation: '故事里小松鼠没有带伞，小兔子和它一起走。' },
+            { id: 'q3', prompt: '这个故事主要告诉我们什么？', options: ['要帮助朋友', '要跑得很快', '要把伞藏起来'], answer: '要帮助朋友', explanation: '小兔子把伞分享给朋友，这是一种帮助。' }
+          ]
+        },
+        {
+          id: 'glowing-stone', title: '会发光的石头', level: 'L1', ageRange: '6 岁左右', theme: '好奇心', summary: '小鹿在草地上发现一颗会发光的小石头，并学会认真观察。', coverEmoji: '✨', estimatedMinutes: 5,
+          keywords: ['光', '石', '找', '亮'],
+          pages: [
+            { id: 'p1', text: '傍晚，小鹿在草地上看到一点亮光。', keywords: ['光', '亮'] },
+            { id: 'p2', text: '它低头一看，原来是一颗小石头在月光下闪闪发亮。', keywords: ['石', '月光'] },
+            { id: 'p3', text: '小鹿没有急着拿走它，而是叫朋友们一起来看。', keywords: ['朋友', '看'] },
+            { id: 'p4', text: '大家发现，认真观察就能找到很多有趣的小秘密。', keywords: ['找', '观察'] }
+          ],
+          questions: [
+            { id: 'q1', prompt: '故事里会发亮的是哪一个？', options: ['石头', '鞋子', '帽子'], answer: '石头', explanation: '小鹿看到的是一颗在月光下发亮的小石头。' },
+            { id: 'q2', prompt: '小鹿在哪里发现亮光？', options: ['草地上', '河水里', '屋顶上'], answer: '草地上', explanation: '故事开头说小鹿在草地上看到亮光。' },
+            { id: 'q3', prompt: '大家最后明白了什么？', options: ['认真观察会发现秘密', '石头都会唱歌', '晚上不能出门'], answer: '认真观察会发现秘密', explanation: '故事结尾说认真观察能找到有趣的小秘密。' }
+          ]
+        },
+        {
+          id: 'bear-brush-teeth', title: '小熊不想刷牙', level: 'L1', ageRange: '6 岁左右', theme: '生活习惯', summary: '小熊一开始不想刷牙，后来知道干净的牙齿很重要。', coverEmoji: '🪥', estimatedMinutes: 5,
+          keywords: ['牙', '刷', '水', '干净'],
+          pages: [
+            { id: 'p1', text: '早上，小熊揉揉眼睛，说：“我不想刷牙。”', keywords: ['牙', '刷'] },
+            { id: 'p2', text: '妈妈拿来牙刷和一杯清水，笑着说：“牙齿也要洗澡呀。”', keywords: ['水', '牙刷'] },
+            { id: 'p3', text: '小熊刷呀刷，嘴巴里有了清清爽爽的味道。', keywords: ['刷', '清爽'] },
+            { id: 'p4', text: '它照照镜子，说：“干净的牙齿真好看！”', keywords: ['干净', '牙齿'] }
+          ],
+          questions: [
+            { id: 'q1', prompt: '“刷牙”的“牙”指的是哪里？', options: ['牙齿', '耳朵', '尾巴'], answer: '牙齿', explanation: '刷牙就是清洁牙齿。' },
+            { id: 'q2', prompt: '妈妈拿来了什么？', options: ['牙刷和清水', '雨伞和帽子', '小车和石头'], answer: '牙刷和清水', explanation: '故事里妈妈拿来牙刷和一杯清水。' },
+            { id: 'q3', prompt: '小熊最后觉得干净的牙齿很好看。', options: ['对', '错'], answer: '对', explanation: '小熊照镜子后说干净的牙齿真好看。' }
+          ]
+        }
+      ];
+
+      let currentStoryIndex = 0;
+      let currentPageIndex = 0;
+      let currentQuestionIndex = 0;
+      let answers = {};
+      let completed = [];
+      let isSpeaking = false;
+      let activeText = '';
+      let activeCharIndex = -1;
+      let highlightTimer = null;
+      const canSpeak = 'speechSynthesis' in window;
+
+      function $(id) { return document.getElementById(id); }
+      function currentStory() { return stories[currentStoryIndex]; }
+      function currentPage() { return currentStory().pages[currentPageIndex]; }
+      function currentQuestion() { return currentStory().questions[currentQuestionIndex]; }
+
+      function runSelfTests() {
+        const failures = [];
+        if (!Array.isArray(stories) || stories.length < 3) failures.push('至少需要 3 个故事');
+        stories.forEach((story) => {
+          if (!story.id || !story.title) failures.push('故事缺少 id/title');
+          if (!story.pages || story.pages.length === 0) failures.push(story.title + ' 缺少页面');
+          if (!story.questions || story.questions.length === 0) failures.push(story.title + ' 缺少题目');
+          story.questions.forEach((q) => {
+            if (!q.options.includes(q.answer)) failures.push(story.title + ' 答案不在选项内');
+          });
+        });
+        if (failures.length > 0) alert('Demo 自检失败：\n' + failures.join('\n'));
+      }
+
+      function hideAll() {
+        ['homeView', 'readerView', 'quizView', 'resultView'].forEach((id) => $(id).classList.add('hidden'));
+      }
+
+      function renderTopStatus() {
+        $('topStatus').textContent = (isSpeaking ? '🔊 正在朗读 · ' : '⭐ ') + '已完成 ' + completed.length + '/' + stories.length;
+      }
+
+      function renderStoryList() {
+        $('storyList').innerHTML = stories.map((story, index) => {
+          const done = completed.includes(story.id);
+          return '<button class="story-card" onclick="startStory(' + index + ')">' +
+            '<div class="story-top"><div class="emoji">' + story.coverEmoji + '</div><span class="' + (done ? 'done-pill' : 'status-pill') + ' pill">' + (done ? '✓ 已完成' : '📖 开始') + '</span></div>' +
+            '<h3>' + story.title + '</h3>' +
+            '<p class="muted" style="line-height:1.7;margin-top:8px;">' + story.summary + '</p>' +
+            '<div style="margin-top:12px;"><span class="pill">' + story.level + '</span><span class="pill">' + story.ageRange + '</span><span class="pill">' + story.estimatedMinutes + ' 分钟</span></div>' +
+            '</button>';
+        }).join('');
+      }
+
+      function showHome() {
+        stopSpeaking();
+        hideAll();
+        renderStoryList();
+        renderTopStatus();
+        $('homeView').classList.remove('hidden');
+      }
+
+      function startStory(index) {
+        stopSpeaking();
+        currentStoryIndex = index;
+        currentPageIndex = 0;
+        currentQuestionIndex = 0;
+        answers = {};
+        showReader();
+      }
+
+      function showReader() {
+        stopSpeaking();
+        hideAll();
+        renderReader();
+        $('readerView').classList.remove('hidden');
+      }
+
+      function renderReader() {
+        const story = currentStory();
+        const page = currentPage();
+        const progress = Math.round(((currentPageIndex + 1) / story.pages.length) * 100);
+        $('readerMeta').innerHTML = '<span class="pill">' + story.level + '</span><span class="pill">' + story.theme + '</span><span class="pill">阅读进度 ' + progress + '%</span>';
+        $('progressBar').style.width = progress + '%';
+        $('readerEmoji').textContent = story.coverEmoji;
+        $('readerTitle').textContent = story.title;
+        $('readerPageCount').textContent = '第 ' + (currentPageIndex + 1) + ' 页 / 共 ' + story.pages.length + ' 页';
+        renderHighlightedText();
+        $('keywords').innerHTML = page.keywords.map((word) => '<span class="keyword">关键词：' + word + '</span>').join('');
+        $('prevBtn').disabled = currentPageIndex === 0;
+        $('nextBtn').textContent = currentPageIndex < story.pages.length - 1 ? '下一页 ›' : '开始答题 ›';
+        $('speakPageBtn').textContent = isSpeaking && activeText === page.text ? '⏹ 停止高亮朗读' : '🔊 高亮朗读';
+      }
+
+      function renderHighlightedText() {
+        const page = currentPage();
+        $('readerText').innerHTML = page.text.split('').map((char, index) => {
+          const active = isSpeaking && activeText === page.text && index === activeCharIndex;
+          const read = isSpeaking && activeText === page.text && index < activeCharIndex;
+          return '<span class="char ' + (active ? 'char-active ' : '') + (read ? 'char-read' : '') + '">' + char + '</span>';
+        }).join('');
+      }
+
+      function prevPage() {
+        stopSpeaking();
+        currentPageIndex = Math.max(0, currentPageIndex - 1);
+        renderReader();
+      }
+
+      function nextPage() {
+        stopSpeaking();
+        if (currentPageIndex < currentStory().pages.length - 1) {
+          currentPageIndex += 1;
+          renderReader();
+        } else {
+          currentQuestionIndex = 0;
+          showQuiz();
+        }
+      }
+
+      function showQuiz() {
+        stopSpeaking();
+        hideAll();
+        renderQuiz();
+        $('quizView').classList.remove('hidden');
+      }
+
+      function renderQuiz() {
+        const story = currentStory();
+        const q = currentQuestion();
+        $('questionMeta').textContent = '第 ' + (currentQuestionIndex + 1) + ' 题 / 共 ' + story.questions.length + ' 题';
+        $('questionPrompt').textContent = q.prompt;
+        $('options').innerHTML = q.options.map((option) => {
+          const selected = answers[q.id] === option;
+          const correct = answers[q.id] && option === q.answer;
+          return '<button class="option ' + (selected ? 'selected ' : '') + (correct ? 'correct' : '') + '" onclick="selectAnswer(\'' + option + '\')">' + option + '</button>';
+        }).join('');
+        if (answers[q.id]) {
+          $('feedback').classList.remove('hidden');
+          $('feedback').textContent = (answers[q.id] === q.answer ? '答对啦！' : '再想想也没关系。') + ' ' + q.explanation;
+        } else {
+          $('feedback').classList.add('hidden');
+        }
+        $('quizNextBtn').disabled = !answers[q.id];
+        $('quizNextBtn').textContent = currentQuestionIndex < story.questions.length - 1 ? '下一题' : '看结果';
+      }
+
+      function selectAnswer(option) {
+        const q = currentQuestion();
+        answers[q.id] = option;
+        renderQuiz();
+        const isCorrect = option === q.answer;
+        speak(isCorrect ? '答对啦！' + q.explanation : '再想想也没关系。正确答案是' + q.answer + '。' + q.explanation, false);
+      }
+
+      function nextQuestion() {
+        stopSpeaking();
+        if (currentQuestionIndex < currentStory().questions.length - 1) {
+          currentQuestionIndex += 1;
+          renderQuiz();
+        } else {
+          showResult();
+        }
+      }
+
+      function showResult() {
+        stopSpeaking();
+        hideAll();
+        const story = currentStory();
+        const correct = story.questions.filter((q) => answers[q.id] === q.answer).length;
+        if (!completed.includes(story.id)) completed.push(story.id);
+        $('resultTitle').textContent = '你完成了《' + story.title + '》';
+        $('score').textContent = correct + '/' + story.questions.length;
+        $('stars').textContent = '获得 ' + (correct + 1) + ' 颗星星 ⭐';
+        renderTopStatus();
+        $('resultView').classList.remove('hidden');
+      }
+
+      function restartStory() {
+        startStory(currentStoryIndex);
+      }
+
+      function clearHighlightTimer() {
+        if (highlightTimer) {
+          window.clearInterval(highlightTimer);
+          highlightTimer = null;
+        }
+      }
+
+      function stopSpeaking() {
+        clearHighlightTimer();
+        if (canSpeak) window.speechSynthesis.cancel();
+        isSpeaking = false;
+        activeCharIndex = -1;
+        renderTopStatus();
+        if (!$('readerView').classList.contains('hidden')) renderReader();
+      }
+
+      function startFallbackHighlight(text) {
+        clearHighlightTimer();
+        let index = 0;
+        activeCharIndex = 0;
+        renderHighlightedText();
+        highlightTimer = window.setInterval(() => {
+          index += 1;
+          if (index >= text.length) {
+            clearHighlightTimer();
+            return;
+          }
+          activeCharIndex = index;
+          renderHighlightedText();
+        }, 360);
+      }
+
+      function speak(text, highlight) {
+        if (!canSpeak || !text) return;
+        window.speechSynthesis.cancel();
+        clearHighlightTimer();
+        activeText = highlight ? text : '';
+        activeCharIndex = -1;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.78;
+        utterance.pitch = 1.08;
+        let receivedBoundary = false;
+        utterance.onboundary = (event) => {
+          receivedBoundary = true;
+          if (highlight && typeof event.charIndex === 'number') {
+            activeCharIndex = event.charIndex;
+            renderHighlightedText();
+          }
+        };
+        utterance.onstart = () => {
+          isSpeaking = true;
+          renderTopStatus();
+          if (!$('readerView').classList.contains('hidden')) renderReader();
+          window.setTimeout(() => {
+            if (highlight && !receivedBoundary) startFallbackHighlight(text);
+          }, 500);
+        };
+        utterance.onend = () => {
+          clearHighlightTimer();
+          isSpeaking = false;
+          activeCharIndex = -1;
+          renderTopStatus();
+          if (!$('readerView').classList.contains('hidden')) renderReader();
+        };
+        utterance.onerror = utterance.onend;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function toggleSpeakCurrentPage() {
+        const text = currentPage().text;
+        if (isSpeaking && activeText === text) stopSpeaking();
+        else speak(text, true);
+      }
+
+      function toggleSpeakQuestion() {
+        const q = currentQuestion();
+        const text = q.prompt + '。选项：' + q.options.join('，');
+        if (isSpeaking) stopSpeaking();
+        else speak(text, false);
+      }
+
+      window.addEventListener('beforeunload', stopSpeaking);
+      $('speechStatus').textContent = canSpeak ? '✨ 当前浏览器支持朗读' : '✨ 当前浏览器不支持朗读';
+      runSelfTests();
+      showHome();
+    </script>
   </body>
 </html>
