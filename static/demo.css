@@ -300,6 +300,21 @@ h1, h2, h3, p {
   border: 2px solid rgba(186, 230, 253, 0.75);
 }
 
+.visual-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(250, 204, 21, .22), transparent 18%),
+    radial-gradient(circle at 82% 22%, rgba(56, 189, 248, .20), transparent 22%);
+  animation: soft-bg-float 4s ease-in-out infinite alternate;
+}
+
+@keyframes soft-bg-float {
+  from { transform: translateY(0) scale(1); opacity: .75; }
+  to { transform: translateY(12px) scale(1.06); opacity: 1; }
+}
+
 .scene-floor {
   position: absolute;
   left: 0;
@@ -316,6 +331,12 @@ h1, h2, h3, p {
   transform: translateX(-50%);
   width: 148px;
   height: 156px;
+  animation: bear-enter .45s ease-out both;
+}
+
+@keyframes bear-enter {
+  from { transform: translateX(-50%) translateY(26px) scale(.92); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
 }
 
 .bear-body {
@@ -390,21 +411,21 @@ h1, h2, h3, p {
 }
 
 .bear.happy {
-  animation: happy-bounce .75s ease-in-out infinite alternate;
+  animation: happy-bounce .46s ease-in-out infinite alternate;
 }
 
 .bear.no {
-  animation: shake-head .8s ease-in-out infinite;
+  animation: shake-head .46s ease-in-out infinite;
 }
 
 @keyframes shake-head {
-  0%, 100% { transform: translateX(-50%) rotate(-4deg); }
-  50% { transform: translateX(-50%) rotate(4deg); }
+  0%, 100% { transform: translateX(-50%) rotate(-10deg); }
+  50% { transform: translateX(-50%) rotate(10deg); }
 }
 
 @keyframes happy-bounce {
-  from { transform: translateX(-50%) translateY(0); }
-  to { transform: translateX(-50%) translateY(-10px); }
+  from { transform: translateX(-50%) translateY(0) scale(1); }
+  to { transform: translateX(-50%) translateY(-18px) scale(1.04); }
 }
 
 .tooth {
@@ -418,6 +439,13 @@ h1, h2, h3, p {
   border: 4px solid rgba(100, 116, 139, .35);
   box-shadow: inset 0 -10px 0 rgba(0,0,0,.05);
   transition: background .28s, box-shadow .28s, transform .18s;
+  animation: object-pop .48s ease-out both;
+}
+
+@keyframes object-pop {
+  from { transform: translateY(20px) scale(.72); opacity: 0; }
+  70% { transform: translateY(-4px) scale(1.08); opacity: 1; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .tooth.clean-1 { --tooth-color: #e5e7eb; }
@@ -443,7 +471,18 @@ h1, h2, h3, p {
   border-radius: 999px;
   background: #38bdf8;
   transform: rotate(-18deg);
-  box-shadow: inset 0 -5px 0 rgba(0,0,0,.08);
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,.08), 0 8px 18px rgba(14,165,233,.2);
+  animation: toothbrush-enter .55s ease-out both, idle-float 1.6s ease-in-out .6s infinite alternate;
+}
+
+@keyframes toothbrush-enter {
+  from { transform: rotate(-35deg) translateX(-70px); opacity: 0; }
+  to { transform: rotate(-18deg) translateX(0); opacity: 1; }
+}
+
+@keyframes idle-float {
+  from { margin-bottom: 0; }
+  to { margin-bottom: 8px; }
 }
 
 .toothbrush::before {
@@ -459,12 +498,12 @@ h1, h2, h3, p {
 }
 
 .toothbrush.wiggle {
-  animation: brush-wiggle .55s ease-in-out infinite alternate;
+  animation: brush-wiggle .28s ease-in-out infinite alternate;
 }
 
 @keyframes brush-wiggle {
-  from { transform: rotate(-22deg) translateX(-4px); }
-  to { transform: rotate(-8deg) translateX(12px); }
+  from { transform: rotate(-30deg) translateX(-18px) translateY(8px); }
+  to { transform: rotate(2deg) translateX(42px) translateY(-10px); }
 }
 
 .cup {
@@ -476,6 +515,12 @@ h1, h2, h3, p {
   background: linear-gradient(180deg, #dbeafe, #60a5fa);
   border: 4px solid #2563eb;
   border-radius: 8px 8px 20px 20px;
+  animation: object-pop .5s ease-out both, water-shake 1.2s ease-in-out .6s infinite alternate;
+}
+
+@keyframes water-shake {
+  from { transform: rotate(-2deg); }
+  to { transform: rotate(3deg); }
 }
 
 .bubble {
@@ -484,6 +529,7 @@ h1, h2, h3, p {
   background: rgba(186, 230, 253, .82);
   border: 2px solid rgba(14, 165, 233, .4);
   animation: bubble-up 1.2s ease-out forwards;
+  pointer-events: none;
 }
 
 @keyframes bubble-up {
@@ -514,6 +560,27 @@ h1, h2, h3, p {
 .object-target.found {
   transform: scale(1.08);
   filter: drop-shadow(0 0 18px rgba(250, 204, 21, .65));
+}
+
+.object-target::after {
+  content: "点我";
+  position: absolute;
+  left: 50%;
+  top: -16px;
+  transform: translateX(-50%);
+  background: #facc15;
+  color: #713f12;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 1000;
+  box-shadow: 0 6px 14px rgba(245, 158, 11, .25);
+  animation: tap-hint .7s ease-in-out infinite alternate;
+}
+
+@keyframes tap-hint {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-7px); }
 }
 
 .story-line {
