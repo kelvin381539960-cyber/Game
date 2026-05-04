@@ -9,6 +9,8 @@ const state = {
   answers: {},
   foundTargets: new Set(),
   brushCount: 0,
+  isDraggingBrush: false,
+  brushHitCooldown: false,
   resultSparkled: false,
   stars: 0,
   rewards: [],
@@ -48,6 +50,8 @@ function resetRuntime() {
   state.answers = {};
   state.foundTargets = new Set();
   state.brushCount = 0;
+  state.isDraggingBrush = false;
+  state.brushHitCooldown = false;
   state.resultSparkled = false;
   state.stars = 0;
   state.rewards = [];
@@ -209,8 +213,7 @@ function bindSceneObjectEvents(scene) {
   }
 
   if (scene.type === 'repeatTap') {
-    brushTarget?.addEventListener('click', handleBrushTap);
-    toothTarget?.addEventListener('click', handleBrushTap);
+    enableBrushDrag(brushTarget, toothTarget);
   }
 
   if (scene.type === 'tapFinish') {
@@ -284,11 +287,10 @@ function renderInteraction(scene) {
 
   if (scene.type === 'repeatTap') {
     panel.innerHTML = `
-      <button class="action-card" id="brushActionButton" type="button">🪥 帮小熊刷一刷</button>
+      <div class="action-card">🪥 按住上面的牙刷，拖到牙齿上刷一刷</div>
       <div class="clean-meter" aria-label="清洁进度"><div style="width: ${(state.brushCount / scene.requiredCount) * 100}%"></div></div>
-      <p class="hint-text">刷牙进度：${state.brushCount}/${scene.requiredCount}</p>
+      <p class="hint-text">刷牙进度：${state.brushCount}/${scene.requiredCount} · ${state.brushCount >= scene.requiredCount ? '牙齿刷干净啦！' : '拖动牙刷碰到牙齿会增加进度'}</p>
     `;
-    $('brushActionButton').addEventListener('click', handleBrushTap);
     return;
   }
 
@@ -356,7 +358,74 @@ function markObjectFound(targetId, message) {
   renderScene();
 }
 
-function handleBrushTap() {
+function enableBrushDrag(brushTarget, toothTarget) {
+  if (!brushTarget || !toothTarget) return;
+
+  brushTarget.classList.add('draggable-brush');
+  brushTarget.addEventListener('pointerdown', (event) => startBrushDrag(event, brushTarget, toothTarget));
+}
+
+function startBrushDrag(event, brushTarget, toothTarget) {
+  if (currentScene().type !== 'repeatTap') return;
+
+  event.preventDefault();
+  state.isDraggingBrush = true;
+  brushTarget.classList.add('dragging');
+  brushTarget.setPointerCapture?.(event.pointerId);
+  moveBrushToPointer(event, brushTarget);
+
+  const handleMove = (moveEvent) => {
+    if (!state.isDraggingBrush) return;
+    moveBrushToPointer(moveEvent, brushTarget);
+    checkBrushToothHit(brushTarget, toothTarget);
+  };
+
+  const handleUp = () => {
+    state.isDraggingBrush = false;
+    brushTarget.classList.remove('dragging');
+    window.removeEventListener('pointermove', handleMove);
+    window.removeEventListener('pointerup', handleUp);
+    window.removeEventListener('pointercancel', handleUp);
+
+    if (state.brushCount < currentScene().requiredCount) {
+      showToast('继续拖到牙齿上刷一刷');
+    }
+  };
+
+  window.addEventListener('pointermove', handleMove);
+  window.addEventListener('pointerup', handleUp);
+  window.addEventListener('pointercancel', handleUp);
+}
+
+function moveBrushToPointer(event, brushTarget) {
+  const sceneRect = $('visualScene').getBoundingClientRect();
+  const x = event.clientX - sceneRect.left - brushTarget.offsetWidth / 2;
+  const y = event.clientY - sceneRect.top - brushTarget.offsetHeight / 2;
+  const safeX = Math.max(0, Math.min(sceneRect.width - brushTarget.offsetWidth, x));
+  const safeY = Math.max(0, Math.min(sceneRect.height - brushTarget.offsetHeight, y));
+
+  brushTarget.style.left = `${safeX}px`;
+  brushTarget.style.top = `${safeY}px`;
+  brushTarget.style.bottom = 'auto';
+}
+
+function checkBrushToothHit(brushTarget, toothTarget) {
+  if (state.brushHitCooldown || state.brushCount >= currentScene().requiredCount) return;
+
+  const brushRect = brushTarget.getBoundingClientRect();
+  const toothRect = toothTarget.getBoundingClientRect();
+  const overlap = !(brushRect.right < toothRect.left || brushRect.left > toothRect.right || brushRect.bottom < toothRect.top || brushRect.top > toothRect.bottom);
+
+  if (!overlap) return;
+
+  state.brushHitCooldown = true;
+  registerBrushStroke();
+  window.setTimeout(() => {
+    state.brushHitCooldown = false;
+  }, 520);
+}
+
+function registerBrushStroke() {
   const scene = currentScene();
   if (scene.type !== 'repeatTap') return;
 
