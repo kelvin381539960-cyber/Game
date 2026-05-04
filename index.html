@@ -5,587 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="儿童中文互动阅读与认字训练 Web App MVP" />
     <title>儿童互动阅读试玩</title>
-    <style>
-      * { box-sizing: border-box; max-width: 100%; }
-      html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
-      body {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-        color: #1f2937;
-        background: linear-gradient(135deg, #fff7ed 0%, #ecfeff 48%, #f3e8ff 100%);
-        min-height: 100vh;
-      }
-      button { font: inherit; cursor: pointer; }
-      .shell { width: 100%; max-width: 1080px; margin: 0 auto; padding: 18px 18px 96px; overflow-x: hidden; }
-      .header, .card, .dark-card, .reader-card, .quiz-card, .result-card, .audio-bar {
-        border-radius: 28px;
-        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-      }
-      .header { background: rgba(255, 255, 255, 0.82); display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; margin-bottom: 18px; }
-      .brand { display: flex; gap: 12px; align-items: center; border: 0; background: transparent; text-align: left; }
-      .brand-icon { width: 48px; height: 48px; border-radius: 18px; display: grid; place-items: center; background: #fcd34d; font-size: 24px; }
-      h1, h2, h3, p { margin: 0; }
-      .muted { color: #64748b; }
-      .grid { display: grid; gap: 18px; }
-      .home-grid { grid-template-columns: 1.1fr 0.9fr; }
-      .stories-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .card { background: rgba(255, 255, 255, 0.86); padding: 24px; }
-      .hero { background: linear-gradient(135deg, #fff7ed, #eff6ff); border: 2px solid rgba(251, 191, 36, 0.38); border-radius: 28px; padding: 24px; margin-bottom: 18px; }
-      .hero-title { font-size: 36px; line-height: 1.18; font-weight: 1000; }
-      .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
-      .story-card { width: 100%; border: 1px solid #e2e8f0; background: linear-gradient(135deg, white, #f8fafc); text-align: left; padding: 18px; border-radius: 24px; transition: transform 0.15s, box-shadow 0.15s; }
-      .story-card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1); }
-      .story-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-      .emoji { font-size: 52px; }
-      .pill { display: inline-block; padding: 7px 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.78); color: #475569; font-size: 12px; font-weight: 800; margin: 4px 5px 0 0; }
-      .status-pill { background: #dbeafe; color: #2563eb; }
-      .done-pill { background: #dcfce7; color: #16a34a; }
-      .recommend-pill { background: #fef3c7; color: #a16207; }
-      .dark-card { background: #0f172a; color: white; padding: 24px; }
-      .dark-card .muted { color: #cbd5e1; line-height: 1.8; }
-      .feature { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 16px; margin-top: 10px; font-weight: 700; }
-      .btn { border: 0; border-radius: 18px; padding: 13px 18px; font-weight: 900; display: inline-flex; gap: 8px; align-items: center; justify-content: center; max-width: 100%; white-space: normal; transition: transform .12s, box-shadow .12s, opacity .12s; }
-      .btn:hover:not(:disabled) { transform: translateY(-1px); }
-      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-      .btn-large { font-size: 19px; padding: 17px 24px; border-radius: 22px; box-shadow: 0 12px 28px rgba(14, 165, 233, .18); }
-      .btn-slate { background: #f1f5f9; color: #334155; }
-      .btn-blue { background: #0ea5e9; color: white; }
-      .btn-yellow { background: #facc15; color: #713f12; }
-      .btn-green { background: #dcfce7; color: #15803d; }
-      .btn-red { background: #fee2e2; color: #b91c1c; }
-      .toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
-      .progress { height: 12px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin-bottom: 18px; }
-      .progress-bar { height: 100%; background: #facc15; transition: width 0.2s; }
-      .reader-grid { grid-template-columns: 0.8fr 1.2fr; align-items: stretch; }
-      .reader-grid > * { min-width: 0; }
-      .reader-cover { border-radius: 28px; background: linear-gradient(135deg, #fef3c7, #dffafe); padding: 32px; display: grid; place-items: center; text-align: center; }
-      .reader-card { background: white; padding: 24px; min-width: 0; overflow: hidden; }
-      .reader-text { min-height: 180px; max-width: 100%; overflow-wrap: anywhere; word-break: break-word; font-size: 32px; line-height: 1.9; font-weight: 900; letter-spacing: 0.03em; }
-      .char { border-radius: 8px; padding: 0 2px; transition: background-color 0.12s, color 0.12s, box-shadow 0.12s; }
-      .char-read { color: #94a3b8; }
-      .char-active { background: #fcd34d; color: #78350f; box-shadow: inset 0 -0.38em 0 rgba(245,158,11,.28), 0 0 0 3px rgba(251,191,36,.28); }
-      .keyword { display: inline-block; margin: 8px 8px 0 0; border-radius: 16px; padding: 8px 12px; background: #e0f2fe; color: #0369a1; font-weight: 900; font-size: 14px; }
-      .training { margin-top: 12px; padding: 12px; border-radius: 18px; background: #f8fafc; color: #475569; font-weight: 800; line-height: 1.65; }
-      .quiz-card, .result-card { max-width: 760px; margin: 0 auto; background: rgba(255,255,255,0.92); padding: 26px; }
-      .option { width: 100%; border: 2px solid #e2e8f0; background: white; border-radius: 22px; padding: 18px; text-align: left; font-weight: 900; font-size: 18px; margin-top: 10px; transition: transform .1s, border-color .1s, background .1s; }
-      .option:hover { transform: translateY(-1px); border-color: #fbbf24; }
-      .option.selected { border-color: #38bdf8; background: #f0f9ff; }
-      .option.correct { border-color: #34d399; background: #ecfdf5; }
-      .option.wrong { border-color: #fca5a5; background: #fff1f2; }
-      .feedback { margin-top: 16px; background: #fffbeb; color: #92400e; padding: 16px; border-radius: 20px; line-height: 1.7; font-weight: 800; }
-      .reward-pop { animation: pop .35s ease-out; }
-      @keyframes pop { 0% { transform: scale(.92); opacity:.3; } 70% { transform: scale(1.06); opacity:1; } 100% { transform: scale(1); } }
-      .center { text-align: center; }
-      .score { font-size: 60px; color: #f59e0b; font-weight: 1000; }
-      .audio-bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 50; width: min(720px, calc(100% - 24px)); background: rgba(15, 23, 42, .94); color: white; padding: 12px; display: none; align-items: center; justify-content: space-between; gap: 10px; }
-      .audio-bar.show { display: flex; }
-      .audio-title { font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .audio-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-      .audio-actions .btn { padding: 9px 12px; border-radius: 14px; }
-      .toast { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 80; background: #0f172a; color: white; border-radius: 999px; padding: 12px 18px; box-shadow: 0 12px 40px rgba(15,23,42,.2); font-weight: 900; display: none; }
-      .toast.show { display: block; animation: pop .22s ease-out; }
-      .hidden { display: none !important; }
-      @media (max-width: 800px) {
-        html, body { overflow-x: hidden; }
-        body { background: linear-gradient(180deg, #f8fbff 0%, #f5f3ff 100%); }
-        .shell { width: 100%; padding: 10px 10px 128px; overflow-x: hidden; }
-        .home-grid, .stories-grid { grid-template-columns: 1fr; }
-        .hero-title { font-size: 30px; }
-        .header { position: sticky; top: 0; z-index: 30; align-items: flex-start; border-radius: 0 0 24px 24px; margin: -10px -10px 14px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(15,23,42,.08); }
-        .brand-icon { width: 40px; height: 40px; border-radius: 14px; }
-        .brand h1 { font-size: 18px; }
-        .brand .muted { display: none; }
-        .top-status-mobile { max-width: 128px; white-space: normal; line-height: 1.3; text-align: center; }
-
-        #readerView.card { padding: 0; background: transparent; box-shadow: none; border-radius: 0; overflow: visible; }
-        #readerView > .toolbar { position: sticky; top: 70px; z-index: 25; margin: 0 0 10px; padding: 10px; border-radius: 22px; background: rgba(255,255,255,.94); box-shadow: 0 10px 28px rgba(15,23,42,.08); }
-        #readerView > .toolbar .btn { padding: 10px 13px; border-radius: 16px; }
-        #readerMeta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 68%; }
-        #readerMeta .pill { margin: 0; padding: 6px 9px; font-size: 11px; }
-        #readerView .progress { height: 10px; margin: 0 0 10px; }
-
-        .reader-grid { display: block; width: 100%; }
-        .reader-cover { width: 100%; min-height: 108px; margin: 0 0 10px; padding: 14px 16px; border-radius: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .reader-cover > div { display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; text-align: left; width: 100%; }
-        #readerEmoji { grid-row: 1 / 3; font-size: 48px !important; }
-        #readerTitle { font-size: 24px !important; margin-top: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #readerPageCount { margin-top: 4px !important; }
-        #trainingInfo { grid-column: 1 / 3; margin-top: 10px; font-size: 13px; line-height: 1.45; padding: 9px 10px; }
-
-        .reader-card { width: 100%; padding: 18px 14px 16px; border-radius: 26px; box-shadow: 0 16px 42px rgba(15,23,42,.08); overflow: hidden; }
-        .reader-text { width: 100%; min-height: 245px; font-size: clamp(25px, 8vw, 32px); line-height: 1.95; letter-spacing: 0.01em; overflow-wrap: anywhere; word-break: break-word; }
-        .char { padding: 0 1px; }
-        .keyword { padding: 7px 10px; font-size: 13px; }
-
-        .reader-actions { position: fixed; left: 10px; right: 10px; bottom: 76px; z-index: 45; display: grid; grid-template-columns: 1.4fr .9fr .9fr; gap: 8px; margin: 0 !important; padding: 10px; background: rgba(255,255,255,.96); border-radius: 24px; box-shadow: 0 16px 42px rgba(15,23,42,.16); backdrop-filter: blur(10px); }
-        .reader-actions .btn { width: 100%; min-width: 0; padding: 12px 8px; border-radius: 17px; font-size: 14px; }
-
-        .quiz-card, .result-card, .card, .dark-card { padding: 16px; border-radius: 24px; }
-        .audio-bar { bottom: 10px; align-items: stretch; flex-direction: column; border-radius: 24px; }
-        .audio-actions { justify-content: stretch; }
-        .audio-actions .btn { flex: 1; }
-      }
-    </style>
+    <link rel="stylesheet" href="./static/demo.css" />
   </head>
   <body>
-    <div id="toast" class="toast"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
     <main class="shell">
       <header class="header">
-        <button class="brand" onclick="handleHomeClick()" type="button">
+        <button class="brand" id="homeButton" type="button" aria-label="返回首页">
           <div class="brand-icon">📚</div>
           <div>
             <h1>故事闯关乐园</h1>
-            <p class="muted">读故事 · 逐字高亮 · 答问题 · 拿星星</p>
+            <p class="muted">看动画 · 玩互动 · 学词语 · 拿星星</p>
           </div>
         </button>
-        <div id="topStatus" class="pill top-status-mobile">⭐ 已完成 0/3</div>
+        <div id="topStatus" class="pill top-status-mobile">⭐ 完成 0/1</div>
       </header>
 
       <section id="homeView" class="grid home-grid">
         <div class="card">
           <div class="hero">
-            <p class="pill recommend-pill">今日推荐</p>
-            <h2 class="hero-title" id="heroTitle">开始今天的第一个故事</h2>
-            <p id="heroSummary" class="muted" style="font-size:17px;line-height:1.8;margin-top:10px;"></p>
+            <p class="pill recommend-pill">互动体验版</p>
+            <h2 class="hero-title">帮小熊把牙刷干净</h2>
+            <p class="muted hero-summary">
+              小熊一开始不想刷牙。小朋友要观察表情、认识牙刷和水，再亲手帮小熊刷牙。
+            </p>
             <div class="hero-actions">
-              <button class="btn btn-blue btn-large" onclick="startRecommendedStory()" type="button">▶ 开始读故事</button>
-              <button class="btn btn-slate" onclick="scrollToStories()" type="button">看看其他故事</button>
+              <button class="btn btn-blue btn-large" id="startInteractiveButton" type="button">▶ 开始互动故事</button>
+              <button class="btn btn-slate" id="resetProgressButton" type="button">↻ 清空进度</button>
             </div>
           </div>
-          <h2 id="storySectionTitle" style="font-size:26px; margin-bottom:10px;">故事列表</h2>
-          <div id="storyList" class="grid stories-grid"></div>
+
+          <h2 class="section-title">今天学习什么？</h2>
+          <div class="learning-grid">
+            <div class="learning-card">😣 理解“不想”的表情和动作</div>
+            <div class="learning-card">🪥 认识“牙刷”和“水”</div>
+            <div class="learning-card">🫧 动手刷牙，看牙齿变干净</div>
+            <div class="learning-card">🏅 获得“护牙小卫士”徽章</div>
+          </div>
         </div>
+
         <aside class="dark-card">
-          <div style="font-size:64px;">🏆</div>
-          <h2 style="margin-top:12px;">家长可看</h2>
-          <p class="muted" style="margin-top:12px;">每个故事训练识字、阅读理解和表达复述。小朋友可以听读、跟读、答题，完成后获得星星。</p>
-          <div class="feature">✨ 朗读时当前文字会发亮</div>
-          <div class="feature">✨ 进度会自动保存在本机</div>
-          <div class="feature">✨ 答题后有鼓励反馈</div>
+          <div class="big-emoji">🧸</div>
+          <h2>家长可看</h2>
+          <p class="muted">
+            这个版本不是单纯朗读，而是让孩子参与推动故事：看表情、点物品、完成刷牙动作，并通过即时反馈理解因果关系。
+          </p>
+          <div class="feature">✨ 每页只有一个主要学习目标</div>
+          <div class="feature">✨ 每次互动都有视觉和语音反馈</div>
+          <div class="feature">✨ 进度保存在本机</div>
           <div class="feature" id="speechStatus">✨ 正在检测朗读能力</div>
         </aside>
       </section>
 
-      <section id="readerView" class="hidden card">
-        <div class="toolbar">
-          <button class="btn btn-slate" onclick="confirmLeaveToHome()" type="button">⌂ 返回</button>
-          <div id="readerMeta"></div>
-        </div>
-        <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
-        <div class="grid reader-grid">
-          <div class="reader-cover">
-            <div>
-              <div id="readerEmoji" style="font-size:88px;"></div>
-              <h2 id="readerTitle" style="font-size:32px; margin-top:14px;"></h2>
-              <p id="readerPageCount" class="muted" style="margin-top:8px;"></p>
-              <div id="trainingInfo" class="training"></div>
-            </div>
-          </div>
-          <div class="reader-card">
-            <p id="readerText" class="reader-text"></p>
-            <div id="keywords"></div>
-            <div class="toolbar reader-actions" style="margin-top:24px; margin-bottom:0;">
-              <button id="speakPageBtn" class="btn btn-green" onclick="toggleSpeakCurrentPage()" type="button">🔊 高亮朗读</button>
-              <button id="prevBtn" class="btn btn-slate" onclick="prevPage()" type="button">‹ 上一页</button>
-              <button id="nextBtn" class="btn btn-blue" onclick="nextPage()" type="button">下一页 ›</button>
-            </div>
+      <section id="interactiveView" class="hidden interactive-layout">
+        <div class="scene-toolbar">
+          <button class="btn btn-slate" id="leaveStoryButton" type="button">⌂ 返回</button>
+          <div class="scene-progress">
+            <span id="sceneStepText">1/4</span>
+            <div class="mini-progress"><div id="sceneProgressBar"></div></div>
           </div>
         </div>
-      </section>
 
-      <section id="quizView" class="hidden quiz-card">
-        <div class="toolbar">
-          <div>
-            <p id="questionMeta" style="font-weight:900; color:#d97706;"></p>
-            <h2 id="questionPrompt" style="font-size:26px; margin-top:8px;"></h2>
-            <button id="speakQuestionBtn" class="btn btn-green" style="margin-top:14px;" onclick="toggleSpeakQuestion()" type="button">🔊 朗读题目</button>
+        <div class="interactive-stage">
+          <div class="stage-header">
+            <div>
+              <p class="pill recommend-pill" id="sceneGoal">学习目标</p>
+              <h2 id="sceneTitle">场景标题</h2>
+            </div>
+            <button class="btn btn-green" id="speakSceneButton" type="button">🔊 播放</button>
           </div>
-          <div style="font-size:44px;">🧠</div>
-        </div>
-        <div id="options"></div>
-        <div id="feedback" class="feedback hidden"></div>
-        <div class="toolbar" style="margin-top:22px; margin-bottom:0;">
-          <button class="btn btn-slate" onclick="confirmBackToReader()" type="button">返回</button>
-          <button id="quizNextBtn" class="btn btn-blue" onclick="nextQuestion()" type="button">下一题</button>
+
+          <div class="visual-scene" id="visualScene" aria-live="polite"></div>
+
+          <p class="story-line" id="storyLine"></p>
+          <p class="hint-text" id="hintText"></p>
+
+          <div class="interaction-panel" id="interactionPanel"></div>
+
+          <div class="scene-actions">
+            <button class="btn btn-slate" id="prevSceneButton" type="button">‹ 上一步</button>
+            <button class="btn btn-blue" id="nextSceneButton" type="button">下一步 ›</button>
+          </div>
         </div>
       </section>
 
       <section id="resultView" class="hidden result-card center">
-        <div class="reward-pop" style="width:96px;height:96px;border-radius:999px;background:#fcd34d;display:grid;place-items:center;margin:0 auto;font-size:52px;">🏆</div>
-        <h2 style="font-size:40px; margin-top:18px;">闯关完成！</h2>
-        <p id="resultTitle" class="muted" style="font-size:18px; margin-top:10px;"></p>
-        <div class="reward-pop" style="background:linear-gradient(135deg,#fffbeb,#f0f9ff);border-radius:28px;padding:24px;margin:28px 0;">
-          <p id="score" class="score"></p>
-          <p id="stars" style="font-weight:900;color:#475569;"></p>
+        <div class="badge-burst">🏅</div>
+        <h2>你是护牙小卫士！</h2>
+        <p class="muted result-copy">你帮小熊完成了刷牙，还学会了牙刷、水和干净的牙齿。</p>
+        <div class="reward-box">
+          <p id="resultStars" class="score">0⭐</p>
+          <p id="resultItems" class="reward-text"></p>
         </div>
-        <button class="btn btn-slate" onclick="restartStory()" type="button">↻ 再玩一次</button>
-        <button class="btn btn-blue" onclick="showHome()" type="button">选择新故事</button>
+        <button class="btn btn-slate" id="replayStoryButton" type="button">↻ 再玩一次</button>
+        <button class="btn btn-blue" id="goHomeButton" type="button">回到首页</button>
       </section>
     </main>
 
     <div id="audioBar" class="audio-bar">
       <div class="audio-title" id="audioTitle">正在朗读</div>
       <div class="audio-actions">
-        <button id="pauseBtn" class="btn btn-yellow" onclick="pauseOrResumeSpeaking()" type="button">⏸ 暂停</button>
-        <button class="btn btn-green" onclick="replayCurrentAudio()" type="button">↻ 重读</button>
-        <button class="btn btn-red" onclick="stopSpeaking()" type="button">⏹ 停止</button>
+        <button id="pauseButton" class="btn btn-yellow" type="button">⏸ 暂停</button>
+        <button id="replayAudioButton" class="btn btn-green" type="button">↻ 重读</button>
+        <button id="stopAudioButton" class="btn btn-red" type="button">⏹ 停止</button>
       </div>
     </div>
 
-    <script>
-      const STORAGE_KEY = 'child-reading-game-static-progress-v2';
-      const stories = [
-        {
-          id: 'red-umbrella', title: '小兔子的红雨伞', level: 'L1', ageRange: '6 岁左右', theme: '分享与帮助', training: '训练：识字「雨、伞」｜理解：帮助朋友｜表达：复述谁帮助了谁', summary: '下雨天，小兔子用一把红雨伞帮助了没有伞的朋友。', coverEmoji: '☂️', estimatedMinutes: 5,
-          keywords: ['雨', '伞', '红', '朋友'],
-          pages: [
-            { id: 'p1', text: '下雨了，小兔子撑着一把红雨伞，慢慢走在小路上。', keywords: ['雨', '伞'] },
-            { id: 'p2', text: '小松鼠站在树下，尾巴湿湿的。它没有带伞。', keywords: ['树', '伞'] },
-            { id: 'p3', text: '小兔子说：“我们一起走吧，红雨伞很大。”', keywords: ['红', '一起'] },
-            { id: 'p4', text: '两个朋友躲在伞下，雨点落在伞面上，像在唱歌。', keywords: ['朋友', '雨点'] }
-          ],
-          questions: [
-            { id: 'q1', prompt: '“红雨伞”的“伞”是哪一个？', options: ['伞', '云', '车'], answer: '伞', explanation: '伞可以在下雨时帮我们挡雨。' },
-            { id: 'q2', prompt: '小兔子帮助了谁？', options: ['小松鼠', '小猫', '小鸟'], answer: '小松鼠', explanation: '故事里小松鼠没有带伞，小兔子和它一起走。' },
-            { id: 'q3', prompt: '这个故事主要告诉我们什么？', options: ['要帮助朋友', '要跑得很快', '要把伞藏起来'], answer: '要帮助朋友', explanation: '小兔子把伞分享给朋友，这是一种帮助。' }
-          ]
-        },
-        {
-          id: 'glowing-stone', title: '会发光的石头', level: 'L1', ageRange: '6 岁左右', theme: '好奇心', training: '训练：识字「光、石」｜理解：观察发现｜表达：说出小鹿发现了什么', summary: '小鹿在草地上发现一颗会发光的小石头，并学会认真观察。', coverEmoji: '✨', estimatedMinutes: 5,
-          keywords: ['光', '石', '找', '亮'],
-          pages: [
-            { id: 'p1', text: '傍晚，小鹿在草地上看到一点亮光。', keywords: ['光', '亮'] },
-            { id: 'p2', text: '它低头一看，原来是一颗小石头在月光下闪闪发亮。', keywords: ['石', '月光'] },
-            { id: 'p3', text: '小鹿没有急着拿走它，而是叫朋友们一起来看。', keywords: ['朋友', '看'] },
-            { id: 'p4', text: '大家发现，认真观察就能找到很多有趣的小秘密。', keywords: ['找', '观察'] }
-          ],
-          questions: [
-            { id: 'q1', prompt: '故事里会发亮的是哪一个？', options: ['石头', '鞋子', '帽子'], answer: '石头', explanation: '小鹿看到的是一颗在月光下发亮的小石头。' },
-            { id: 'q2', prompt: '小鹿在哪里发现亮光？', options: ['草地上', '河水里', '屋顶上'], answer: '草地上', explanation: '故事开头说小鹿在草地上看到亮光。' },
-            { id: 'q3', prompt: '大家最后明白了什么？', options: ['认真观察会发现秘密', '石头都会唱歌', '晚上不能出门'], answer: '认真观察会发现秘密', explanation: '故事结尾说认真观察能找到有趣的小秘密。' }
-          ]
-        },
-        {
-          id: 'bear-brush-teeth', title: '小熊不想刷牙', level: 'L1', ageRange: '6 岁左右', theme: '生活习惯', training: '训练：识字「牙、刷」｜理解：生活习惯｜表达：说出为什么要刷牙', summary: '小熊一开始不想刷牙，后来知道干净的牙齿很重要。', coverEmoji: '🪥', estimatedMinutes: 5,
-          keywords: ['牙', '刷', '水', '干净'],
-          pages: [
-            { id: 'p1', text: '早上，小熊揉揉眼睛，说：“我不想刷牙。”', keywords: ['牙', '刷'] },
-            { id: 'p2', text: '妈妈拿来牙刷和一杯清水，笑着说：“牙齿也要洗澡呀。”', keywords: ['水', '牙刷'] },
-            { id: 'p3', text: '小熊刷呀刷，嘴巴里有了清清爽爽的味道。', keywords: ['刷', '清爽'] },
-            { id: 'p4', text: '它照照镜子，说：“干净的牙齿真好看！”', keywords: ['干净', '牙齿'] }
-          ],
-          questions: [
-            { id: 'q1', prompt: '“刷牙”的“牙”指的是哪里？', options: ['牙齿', '耳朵', '尾巴'], answer: '牙齿', explanation: '刷牙就是清洁牙齿。' },
-            { id: 'q2', prompt: '妈妈拿来了什么？', options: ['牙刷和清水', '雨伞和帽子', '小车和石头'], answer: '牙刷和清水', explanation: '故事里妈妈拿来牙刷和一杯清水。' },
-            { id: 'q3', prompt: '小熊最后觉得干净的牙齿很好看。', options: ['对', '错'], answer: '对', explanation: '小熊照镜子后说干净的牙齿真好看。' }
-          ]
-        }
-      ];
-
-      let currentStoryIndex = 0;
-      let currentPageIndex = 0;
-      let currentQuestionIndex = 0;
-      let answers = {};
-      let completed = [];
-      let storyStars = {};
-      let isSpeaking = false;
-      let isPaused = false;
-      let activeText = '';
-      let activeCharIndex = -1;
-      let highlightTimer = null;
-      let lastAudio = { text: '', highlight: false, title: '' };
-      const canSpeak = 'speechSynthesis' in window;
-
-      function $(id) { return document.getElementById(id); }
-      function currentStory() { return stories[currentStoryIndex]; }
-      function currentPage() { return currentStory().pages[currentPageIndex]; }
-      function currentQuestion() { return currentStory().questions[currentQuestionIndex]; }
-
-      function loadProgress() {
-        try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-          completed = Array.isArray(saved.completed) ? saved.completed : [];
-          storyStars = saved.storyStars && typeof saved.storyStars === 'object' ? saved.storyStars : {};
-        } catch (error) {
-          completed = [];
-          storyStars = {};
-        }
-      }
-
-      function saveProgress() {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ completed, storyStars })); } catch (error) {}
-      }
-
-      function runSelfTests() {
-        const failures = [];
-        if (!Array.isArray(stories) || stories.length < 3) failures.push('至少需要 3 个故事');
-        stories.forEach((story) => {
-          if (!story.id || !story.title) failures.push('故事缺少 id/title');
-          if (!story.pages || story.pages.length === 0) failures.push(story.title + ' 缺少页面');
-          if (!story.questions || story.questions.length === 0) failures.push(story.title + ' 缺少题目');
-          story.questions.forEach((q) => { if (!q.options.includes(q.answer)) failures.push(story.title + ' 答案不在选项内'); });
-        });
-        if (failures.length > 0) alert('Demo 自检失败：\n' + failures.join('\n'));
-      }
-
-      function showToast(message) {
-        $('toast').textContent = message;
-        $('toast').classList.add('show');
-        window.setTimeout(() => $('toast').classList.remove('show'), 1800);
-      }
-
-      function hideAll() { ['homeView', 'readerView', 'quizView', 'resultView'].forEach((id) => $(id).classList.add('hidden')); }
-
-      function getRecommendedIndex() {
-        const next = stories.findIndex((story) => !completed.includes(story.id));
-        return next >= 0 ? next : 0;
-      }
-
-      function renderTopStatus() {
-        const totalStars = Object.values(storyStars).reduce((sum, value) => sum + Number(value || 0), 0);
-        $('topStatus').textContent = (isSpeaking ? '🔊 朗读中 · ' : '⭐ ') + '完成 ' + completed.length + '/' + stories.length + ' · 星星 ' + totalStars;
-      }
-
-      function renderHero() {
-        const story = stories[getRecommendedIndex()];
-        $('heroTitle').textContent = completed.length === 0 ? '开始今天的第一个故事' : '继续下一个故事';
-        $('heroSummary').textContent = story.coverEmoji + ' 推荐：《' + story.title + '》— ' + story.summary;
-      }
-
-      function renderStoryList() {
-        const recommended = getRecommendedIndex();
-        $('storyList').innerHTML = stories.map((story, index) => {
-          const done = completed.includes(story.id);
-          const stars = storyStars[story.id] || 0;
-          return '<button class="story-card" onclick="startStory(' + index + ')" type="button">' +
-            '<div class="story-top"><div class="emoji">' + story.coverEmoji + '</div><span class="' + (done ? 'done-pill' : index === recommended ? 'recommend-pill' : 'status-pill') + ' pill">' + (done ? '✓ 已完成 · ' + stars + '⭐' : index === recommended ? '推荐先读' : '📖 开始') + '</span></div>' +
-            '<h3>' + story.title + '</h3>' +
-            '<p class="muted" style="line-height:1.7;margin-top:8px;">' + story.summary + '</p>' +
-            '<div class="training">' + story.training + '</div>' +
-            '<div style="margin-top:12px;"><span class="pill">' + story.level + '</span><span class="pill">' + story.ageRange + '</span><span class="pill">' + story.estimatedMinutes + ' 分钟</span></div>' +
-            '</button>';
-        }).join('');
-      }
-
-      function showHome() {
-        stopSpeaking();
-        hideAll();
-        renderHero();
-        renderStoryList();
-        renderTopStatus();
-        $('homeView').classList.remove('hidden');
-      }
-
-      function handleHomeClick() { confirmLeaveToHome(); }
-      function confirmLeaveToHome() {
-        if (!$('readerView').classList.contains('hidden') || !$('quizView').classList.contains('hidden')) {
-          if (!confirm('要离开这个故事吗？当前阅读页会保留，但朗读会停止。')) return;
-        }
-        showHome();
-      }
-      function confirmBackToReader() {
-        if (Object.keys(answers).length > 0 && !confirm('要返回阅读页吗？已答题目会保留。')) return;
-        showReader();
-      }
-
-      function scrollToStories() { $('storySectionTitle').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-      function startRecommendedStory() { startStory(getRecommendedIndex()); }
-
-      function startStory(index) {
-        stopSpeaking();
-        currentStoryIndex = index;
-        currentPageIndex = 0;
-        currentQuestionIndex = 0;
-        answers = {};
-        showReader();
-      }
-
-      function showReader() { stopSpeaking(); hideAll(); renderReader(); $('readerView').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-      function renderReader() {
-        const story = currentStory();
-        const page = currentPage();
-        const progress = Math.round(((currentPageIndex + 1) / story.pages.length) * 100);
-        $('readerMeta').innerHTML = '<span class="pill">' + story.level + '</span><span class="pill">' + story.theme + '</span><span class="pill">阅读进度 ' + progress + '%</span>';
-        $('progressBar').style.width = progress + '%';
-        $('readerEmoji').textContent = story.coverEmoji;
-        $('readerTitle').textContent = story.title;
-        $('readerPageCount').textContent = '第 ' + (currentPageIndex + 1) + ' 页 / 共 ' + story.pages.length + ' 页';
-        $('trainingInfo').textContent = story.training;
-        renderHighlightedText();
-        $('keywords').innerHTML = page.keywords.map((word) => '<span class="keyword">关键词：' + word + '</span>').join('');
-        $('prevBtn').disabled = currentPageIndex === 0;
-        $('nextBtn').textContent = currentPageIndex < story.pages.length - 1 ? '下一页 ›' : '开始答题 ›';
-        $('speakPageBtn').disabled = !canSpeak;
-        $('speakPageBtn').textContent = !canSpeak ? '浏览器不支持朗读' : isSpeaking && activeText === page.text ? '⏹ 停止高亮朗读' : '🔊 高亮朗读';
-      }
-
-      function renderHighlightedText() {
-        const page = currentPage();
-        $('readerText').innerHTML = page.text.split('').map((char, index) => {
-          const active = isSpeaking && activeText === page.text && index === activeCharIndex;
-          const read = isSpeaking && activeText === page.text && index < activeCharIndex;
-          return '<span class="char ' + (active ? 'char-active ' : '') + (read ? 'char-read' : '') + '">' + char + '</span>';
-        }).join('');
-      }
-
-      function prevPage() { stopSpeaking(); currentPageIndex = Math.max(0, currentPageIndex - 1); renderReader(); }
-      function nextPage() {
-        stopSpeaking();
-        if (currentPageIndex < currentStory().pages.length - 1) { currentPageIndex += 1; renderReader(); }
-        else { currentQuestionIndex = 0; showQuiz(); }
-      }
-
-      function showQuiz() { stopSpeaking(); hideAll(); renderQuiz(); $('quizView').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-      function renderQuiz() {
-        const story = currentStory();
-        const q = currentQuestion();
-        $('questionMeta').textContent = '第 ' + (currentQuestionIndex + 1) + ' 题 / 共 ' + story.questions.length + ' 题';
-        $('questionPrompt').textContent = q.prompt;
-        $('speakQuestionBtn').disabled = !canSpeak;
-        $('speakQuestionBtn').textContent = canSpeak ? '🔊 朗读题目' : '浏览器不支持朗读';
-        $('options').innerHTML = q.options.map((option) => {
-          const selected = answers[q.id] === option;
-          const answered = Boolean(answers[q.id]);
-          const correct = answered && option === q.answer;
-          const wrong = selected && option !== q.answer;
-          return '<button class="option ' + (selected ? 'selected ' : '') + (correct ? 'correct ' : '') + (wrong ? 'wrong' : '') + '" onclick="selectAnswer(\'' + option + '\')" type="button">' + option + '</button>';
-        }).join('');
-        if (answers[q.id]) {
-          $('feedback').classList.remove('hidden');
-          $('feedback').classList.add('reward-pop');
-          $('feedback').textContent = (answers[q.id] === q.answer ? '太棒啦，答对了！' : '没关系，我们一起再看一遍。') + ' ' + q.explanation;
-          window.setTimeout(() => $('feedback').classList.remove('reward-pop'), 420);
-        } else { $('feedback').classList.add('hidden'); }
-        $('quizNextBtn').disabled = !answers[q.id];
-        $('quizNextBtn').textContent = currentQuestionIndex < story.questions.length - 1 ? '下一题' : '看结果';
-      }
-
-      function selectAnswer(option) {
-        const q = currentQuestion();
-        answers[q.id] = option;
-        renderQuiz();
-        const isCorrect = option === q.answer;
-        const message = isCorrect ? '太棒啦，答对了！' : '没关系，我们一起再试一次。';
-        showToast(isCorrect ? '⭐ 太棒啦！' : '🌱 再试也很棒');
-        speak(message + q.explanation, false, '答题反馈');
-      }
-
-      function nextQuestion() {
-        stopSpeaking();
-        if (currentQuestionIndex < currentStory().questions.length - 1) { currentQuestionIndex += 1; renderQuiz(); }
-        else { showResult(); }
-      }
-
-      function showResult() {
-        stopSpeaking();
-        hideAll();
-        const story = currentStory();
-        const correct = story.questions.filter((q) => answers[q.id] === q.answer).length;
-        const earnedStars = correct + 1;
-        if (!completed.includes(story.id)) completed.push(story.id);
-        storyStars[story.id] = Math.max(storyStars[story.id] || 0, earnedStars);
-        saveProgress();
-        $('resultTitle').textContent = '你完成了《' + story.title + '》';
-        $('score').textContent = correct + '/' + story.questions.length;
-        $('stars').textContent = '获得 ' + earnedStars + ' 颗星星 ⭐';
-        renderTopStatus();
-        $('resultView').classList.remove('hidden');
-        showToast('🏆 闯关完成，获得星星！');
-      }
-
-      function restartStory() { startStory(currentStoryIndex); }
-
-      function clearHighlightTimer() { if (highlightTimer) { window.clearInterval(highlightTimer); highlightTimer = null; } }
-      function updateAudioBar() {
-        $('audioBar').classList.toggle('show', isSpeaking || isPaused);
-        $('audioTitle').textContent = isPaused ? '已暂停：' + lastAudio.title : '正在朗读：' + lastAudio.title;
-        $('pauseBtn').textContent = isPaused ? '▶ 继续' : '⏸ 暂停';
-      }
-
-      function stopSpeaking() {
-        clearHighlightTimer();
-        if (canSpeak) window.speechSynthesis.cancel();
-        isSpeaking = false;
-        isPaused = false;
-        activeCharIndex = -1;
-        updateAudioBar();
-        renderTopStatus();
-        if (!$('readerView').classList.contains('hidden')) renderReader();
-      }
-
-      function pauseOrResumeSpeaking() {
-        if (!canSpeak) return;
-        if (isPaused) { window.speechSynthesis.resume(); isPaused = false; isSpeaking = true; }
-        else { window.speechSynthesis.pause(); isPaused = true; isSpeaking = false; }
-        updateAudioBar();
-        renderTopStatus();
-      }
-
-      function replayCurrentAudio() { if (lastAudio.text) speak(lastAudio.text, lastAudio.highlight, lastAudio.title); }
-
-      function startFallbackHighlight(text) {
-        clearHighlightTimer();
-        let index = 0;
-        activeCharIndex = 0;
-        renderHighlightedText();
-        highlightTimer = window.setInterval(() => {
-          if (isPaused) return;
-          index += 1;
-          if (index >= text.length) { clearHighlightTimer(); return; }
-          activeCharIndex = index;
-          renderHighlightedText();
-        }, 420);
-      }
-
-      function speak(text, highlight, title) {
-        if (!canSpeak || !text) return;
-        window.speechSynthesis.cancel();
-        clearHighlightTimer();
-        lastAudio = { text, highlight, title: title || '内容' };
-        activeText = highlight ? text : '';
-        activeCharIndex = -1;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.rate = 0.72;
-        utterance.pitch = 1.08;
-        let receivedBoundary = false;
-        utterance.onboundary = (event) => {
-          receivedBoundary = true;
-          if (highlight && typeof event.charIndex === 'number') { activeCharIndex = event.charIndex; renderHighlightedText(); }
-        };
-        utterance.onstart = () => {
-          isSpeaking = true; isPaused = false; updateAudioBar(); renderTopStatus();
-          if (!$('readerView').classList.contains('hidden')) renderReader();
-          window.setTimeout(() => { if (highlight && !receivedBoundary) startFallbackHighlight(text); }, 500);
-        };
-        utterance.onend = () => {
-          clearHighlightTimer(); isSpeaking = false; isPaused = false; activeCharIndex = -1; updateAudioBar(); renderTopStatus();
-          if (!$('readerView').classList.contains('hidden')) renderReader();
-        };
-        utterance.onerror = utterance.onend;
-        window.speechSynthesis.speak(utterance);
-      }
-
-      function toggleSpeakCurrentPage() {
-        const text = currentPage().text;
-        if (isSpeaking && activeText === text) stopSpeaking();
-        else speak(text, true, '《' + currentStory().title + '》第 ' + (currentPageIndex + 1) + ' 页');
-      }
-
-      function toggleSpeakQuestion() {
-        const q = currentQuestion();
-        const text = q.prompt + '。选项：' + q.options.join('，');
-        if (isSpeaking || isPaused) stopSpeaking();
-        else speak(text, false, '第 ' + (currentQuestionIndex + 1) + ' 题');
-      }
-
-      window.addEventListener('beforeunload', stopSpeaking);
-      $('speechStatus').textContent = canSpeak ? '✨ 当前浏览器支持朗读' : '✨ 当前浏览器不支持朗读';
-      loadProgress();
-      runSelfTests();
-      showHome();
-    </script>
+    <script type="module" src="./static/app.js"></script>
   </body>
 </html>
